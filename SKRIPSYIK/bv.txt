@@ -1,0 +1,529 @@
+--------------alarm receiver-----------------
+
+package id.restabayu.clientsatu.Service;
+
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
+
+import static android.support.v4.content.ContextCompat.startForegroundService;
+import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
+
+public class AlarmReciever extends BroadcastReceiver {
+
+    @Override
+    public void onReceive( Context context, Intent intent) {
+        // this will sound the alarm tone
+        //this will sound the alarm once, if you wish to
+        //raise alarm in loop continuously then use MediaPlayer and
+        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            if (alarmUri == null) {
+                alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            }
+
+        Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
+            ringtone.play();
+
+        //this will send a notification message
+        ComponentName comp = new ComponentName(context.getPackageName(),
+                AlarmService.class.getName());
+        startForegroundService(context, (intent.setComponent(comp)));
+        setResultCode(Activity.RESULT_OK);
+
+    }
+}
+
+
+
+-------------------------alarm service ----------------------------------
+
+package id.restabayu.clientsatu.Service;
+
+import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
+import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+import android.widget.Toast;
+import static android.support.v4.content.ContextCompat.startForegroundService;
+import java.util.Random;
+
+import id.restabayu.clientsatu.Classified;
+import id.restabayu.clientsatu.DetailActivity;
+import id.restabayu.clientsatu.R;
+
+public class AlarmService extends IntentService {
+
+    private NotificationManager alarmNotificationManager;
+
+    public AlarmService() {
+        super("AlarmService");
+
+    }
+
+   // public Classified cl;
+
+    @Override
+    public void onHandleIntent(Intent intent) {
+     showNotification("PENGINGAT !", "Acara Segera Dimulai ! Silahkan Mempersiapkan Diri");
+       /* String[] datas = {cl.getNama(), cl.getTanggal(), cl.getWaktu(), cl.getTempat(), cl.getDeskripsi(), cl.getNotif()}; // replace and send your data from here
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+            getIntentt(datas), 0); */
+    }
+
+    private Intent getIntentt(String[] data) {
+        Intent i = new Intent(this, DetailActivity.class);
+        i.putExtra("NAMA_KEY",data[0]);
+        i.putExtra("TANGGAL_KEY",data[1]);
+        i.putExtra("WAKTU_KEY",data[2]);
+        i.putExtra("TEMPAT_KEY",data[3]);
+        i.putExtra("DESKRIPSI_KEY",data[4]);
+        i.putExtra("NOTIF_KEY" , data[5]);
+        return i;
+    }
+
+    private void sendNotification(String msg) {
+        Log.d("AlarmService", "Preparing to send notification...: " + msg);
+        Toast.makeText(this, "Alarm Notif Show", Toast.LENGTH_LONG).show();
+        alarmNotificationManager = (NotificationManager) this
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, DetailActivity.class), 0);
+
+        NotificationCompat.Builder alamNotificationBuilder = new NotificationCompat.Builder(
+                this).setContentTitle("Alarm").setSmallIcon(R.drawable.ic_launcher_background)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
+                .setContentText(msg);
+
+
+        alamNotificationBuilder.setContentIntent(contentIntent);
+        alarmNotificationManager.notify(1, alamNotificationBuilder.build());
+        Log.d("AlarmService", "Notification sent.");
+    }
+
+    private void showNotification(String title, String body) {
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+               new Intent(this, DetailActivity.class), 0);
+        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        String NOTIFICATION_CHANNEL_ID = "id.restabayu.clientsatu.test";
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Notification",NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.setDescription("IK Channel");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.BLUE);
+            notificationChannel.setVibrationPattern(new long[]{0,1000,500,1000});
+            notificationChannel.enableLights(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+        }
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,NOTIFICATION_CHANNEL_ID);
+        notificationBuilder.setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setContentInfo("info")
+                .setContentIntent(contentIntent);
+
+        notificationManager.notify(new Random().nextInt(),notificationBuilder.build());
+    }
+
+}
+
+-------------------------------activity detail xml ------------------------
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView android:id="@+id/cardview"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    card_view:cardCornerRadius="5dp"
+    card_view:cardElevation="10dp"
+    card_view:context=".DetailActivity">
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/namaDetailTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="5dp"
+                android:text="RAPAT ANGGOTA"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                android:textColor="#ff6c22"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@android:color/darker_gray" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tanggalLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="TANGGAL : "
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tanggalDetailTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="11 Januari 2019"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/waktuLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="WAKTU : "
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/waktuDetailTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="18:00"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+
+                <TextView
+                    android:id="@+id/wibLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="WIB"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tempatLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="TEMPAT : "
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tempatDetailTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:padding="5dp"
+                    android:textColor="#646262"
+                    android:text="Student Lounge"
+                    android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp">
+
+            <TextView
+                android:id="@+id/batas1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:maxLines="1"
+                android:padding="5dp"
+                android:text="= = = =  DESKRIPSI  = = = ="
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/deskripsiDetailTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="#646262"
+                android:maxLines="18"
+                android:padding="5dp"
+                android:text="Jelasno jall"
+                android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingBottom="1dp"
+            android:paddingRight="70dp"
+            android:paddingLeft="70dp">
+
+            <ToggleButton
+                android:id="@+id/alarmToggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Alarm On/Off"
+                android:onClick="onToggleClicked"
+                android:textOn="Matikan Pengingat"
+                android:textOff="Ingatkan Saya"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/notifTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="notif"
+            android:layout_gravity="left"
+            android:visibility="invisible"
+            android:textAppearance="?android:attr/textAppearanceListItemSmall" />
+
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+
+-----------------------------------------------manifest-----------------------\
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="id.restabayu.clientsatu">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/calendar"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/calendar"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".Splashscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".SigninActivity" />
+        <activity android:name=".welcome.WelcomeActivity" />
+        <activity android:name=".SignupActivity" />
+
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop"> </activity>
+        <activity
+            android:name=".DetailActivity"
+            android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity"> </activity>
+
+        <activity android:name=".Lainlain.Help"/>
+
+        <activity android:name=".Lainlain.Pengurus"/>
+
+        <activity android:name=".Goodbye" />
+
+        <service android:name=".Service.MyFirebaseInstanceService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".Service.AlarmService"
+            android:enabled="true"/>
+
+        <receiver
+            android:name=".Service.AlarmReciever"
+            android:process=":remote" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
+
+-----------------------------------DetailActivity--------------------------------------
+package id.restabayu.clientsatu;
+
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.lang.String;
+
+import id.restabayu.clientsatu.Service.AlarmReciever;
+import id.restabayu.clientsatu.Service.Converter;
+import id.restabayu.clientsatu.Service.AlarmService;
+
+
+
+public class DetailActivity extends AppCompatActivity {
+
+
+    TextView namaTxt,tanggalTxt,waktuTxt,tempatTxt,deskripsiTxt,notifTxt;
+    AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_detail);
+
+        namaTxt = (TextView) findViewById(R.id.namaDetailTextView);
+        tanggalTxt = (TextView) findViewById(R.id.tanggalDetailTextView);
+        waktuTxt = (TextView) findViewById(R.id.waktuDetailTextView);
+        tempatTxt = (TextView) findViewById(R.id.tempatDetailTextView);
+        deskripsiTxt = (TextView) findViewById(R.id.deskripsiDetailTextView);
+        notifTxt = (TextView) findViewById(R.id.notifTxt);
+
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        ToggleButton alarmToggle = (ToggleButton) findViewById(R.id.alarmToggle);
+
+        //GET INTENT
+        Intent i = this.getIntent();
+
+
+        //RECEIVE DATA
+        String nama = i.getExtras().getString("NAMA_KEY");
+        String tanggal = i.getExtras().getString("TANGGAL_KEY");
+        String waktu = i.getExtras().getString("WAKTU_KEY");
+        String tempat = i.getExtras().getString("TEMPAT_KEY");
+        String deskripsi = i.getExtras().getString("DESKRIPSI_KEY");
+        String notif = i.getExtras().getString("NOTIF_KEY");
+
+
+        //BIND DATA
+        namaTxt.setText(nama);
+        tanggalTxt.setText(tanggal);
+        waktuTxt.setText(waktu);
+        tempatTxt.setText(tempat);
+        deskripsiTxt.setText(deskripsi);
+        notifTxt.setText(notif);
+
+
+    }
+
+
+
+        public void onToggleClicked (View view) {
+            String date = Converter.ConvertDate(tanggalTxt.getText().toString(), "dd/MM/yyyy", "yyyy MM dd");
+            String time = notifTxt.getText().toString();
+            String dateTime = date + " " + time;
+            Date txtAlarm = Converter.toDate(dateTime, "yyyy MM dd HH:mm");
+            if (((ToggleButton) view).isChecked()) {
+                Log.d("MyActivity", "Alarm On");
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(txtAlarm);
+                Intent myIntent = new Intent(this, AlarmReciever.class);
+                pendingIntent = PendingIntent.getBroadcast(DetailActivity.this, 0, myIntent, 0);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            }
+
+            else {
+                alarmManager.cancel(pendingIntent);
+                Log.d("MyActivity", "Alarm Off");
+            }
+        }
+}

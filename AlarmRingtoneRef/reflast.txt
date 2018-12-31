@@ -1,0 +1,26 @@
+https://stackoverflow.com/questions/43253721/notification-action-button-dosent-stop-the-alarm-ringtone
+https://stackoverflow.com/questions/29155869/why-android-alarm-triggers-plays-sound-while-the-time-is-set-to-backward
+https://stackoverflow.com/questions/14089380/how-do-i-stop-the-currently-playing-ringtone
+https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground
+https://www.youtube.com/watch?v=Oenqq3ZCo9Q
+https://codinginflow.com/tutorials/android/intentservice
+
+https://www.youtube.com/watch?v=FbpD5RZtbCc
+https://codinginflow.com/tutorials/android/foreground-service
+
+https://medium.com/mindorks/enable-background-services-in-chinese-roms-32e73dfba1a6
+
+https://stackoverflow.com/questions/43253721/notification-action-button-dosent-stop-the-alarm-ringtone
+
+
+err 1
+12-24 17:08:58.492 9233-9233/id.restabayu.clientsatu E/AndroidRuntime: FATAL EXCEPTION: main
+    Process: id.restabayu.clientsatu, PID: 9233
+    android.app.RemoteServiceException: Context.startForegroundService() did not then call Service.startForeground()
+        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1769)
+        at android.os.Handler.dispatchMessage(Handler.java:106)
+        at android.os.Looper.loop(Looper.java:164)
+        at android.app.ActivityThread.main(ActivityThread.java:6499)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:440)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:807)

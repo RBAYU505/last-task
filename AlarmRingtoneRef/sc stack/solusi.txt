@@ -1,0 +1,79 @@
+-------------pertanyaan------------------
+
+I set an alarm and i want to disable the ongoing alarm using notification action button without opening the activity.
+
+I have attached my whole code below.
+
+When user set alarm it call the broadcast receiver and from them i call my ringtone service to start ringtone. and it will fire a notification. in that notification it will have a disable button. i have done all the resource i had found on internet. but
+
+disable button on notification didn't work. where is my fault
+
+onToggled button to start alarm from main activity
+
+-------solusi------------------
+
+That was my fault
+
+When i click on disable on notification it again call the receiver class that's why ringtone keeps playing. So i keep some modifying and it works fine.
+
+Ringone_playing_service_---------------------
+
+public class RingtonePlayingService extends Service {
+private static final String TAG = RingtonePlayingService.class.getSimpleName();
+private static final String URI_BASE = RingtonePlayingService.class.getName() + ".";
+public static final String ACTION_DISMISS = URI_BASE + "ACTION_DISMISS";
+
+
+private Ringtone ringtone;
+
+@Override
+public IBinder onBind(Intent intent) {
+    return null;
+}
+
+@Override
+public int onStartCommand(Intent intent, int flags, int startId) {
+    Log.d(TAG, "onStartCommand");
+
+    if (intent == null) {
+        Log.d(TAG, "The intent is null.");
+        return START_REDELIVER_INTENT;
+    }
+
+    String action = intent.getAction();
+
+    if (ACTION_DISMISS.equals(action))
+        dismissRingtone();
+    else {
+        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        if (alarmUri == null) {
+            alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        }
+        ringtone = RingtoneManager.getRingtone(this, alarmUri);
+        ringtone.play();
+    }
+
+    return START_NOT_STICKY;
+}
+
+public void dismissRingtone() {
+    // stop the alarm rigntone
+    Intent i = new Intent(this, RingtonePlayingService.class);
+    stopService(i);
+
+    // also dismiss the alarm to ring again or trigger again
+    AlarmManager aManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+    Intent intent = new Intent(getBaseContext(), AlarmReceiver.class);
+    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+    aManager.cancel(pendingIntent);
+
+    // Canceling the current notification
+    NotificationManager notificationManager =
+            (NotificationManager)getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
+    notificationManager.cancel(321);
+}
+
+@Override
+public void onDestroy() {
+    ringtone.stop();
+}}
