@@ -12,6 +12,8 @@ https://medium.com/mindorks/enable-background-services-in-chinese-roms-32e73dfba
 
 https://stackoverflow.com/questions/43253721/notification-action-button-dosent-stop-the-alarm-ringtone
 
+https://wawasan-ilmiah.blogspot.com/2014/12/perbedaan-include-dan-extend-di-use-case.html#.XEUFrlUzbDc
+
 
 err 1
 12-24 17:08:58.492 9233-9233/id.restabayu.clientsatu E/AndroidRuntime: FATAL EXCEPTION: main
