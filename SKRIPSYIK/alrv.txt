@@ -1,0 +1,3 @@
+https://medium.com/@pedromassango/scheduling-tasks-using-alarmmanager-on-android-8672531b1609
+https://developer.android.com/training/scheduling/alarms
+https://developer.android.com/reference/android/app/AlarmManager
